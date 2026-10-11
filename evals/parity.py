@@ -27,7 +27,7 @@ from src.prompt_builder import load_briefs, build_prompt, SENTENCE_TASKS, KEYWOR
 HERE = Path(__file__).resolve().parent
 REPORTS = HERE / "reports"
 INPUT_FIELDS = ["business_category", "product", "differentiators", "audience", "brand_strategy", "personality"]
-TOLERANCE = nodes.RECIPE["provenance"]["decision_tolerance_cosine"]     # 0.03：实验里"差异小于测量噪声"的界线
+TOLERANCE = nodes.RECIPE["provenance"]["decision_tolerance_cosine"]     # 0.036（= 2×运行噪声 SD 0.018）：实验里"差异小于测量噪声"的界线
 USABLE = 0.60                                                           # 实验工作簿的分档：≥0.60 可用，<0.60 需仔细复核
 CAP_PROD_USD, CAP_EXP_USD = 0.60, 0.30                                  # 本次评估的花费硬上限
 # 实验当时的分数：Results/Prompt Eval Results.xlsx，Final Recommendations 第 3 节 "Avg score"（同一 recipe，Stage A+B，23 份）
