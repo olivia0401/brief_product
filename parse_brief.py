@@ -42,6 +42,16 @@ def parse_text(text):
     return brief
 
 
+def _as_text(v):
+    """YAML/JSON 里的列表（如 personality）写成逐行 "- 项"：和实验的 prompt 渲染一字不差。
+    以前用 str(v)，列表会变成 "['A', 'B']" 这样的 Python 写法进到 prompt 里"""
+    if v is None:
+        return ""
+    if isinstance(v, list):
+        return "\n".join(f"- {str(x).strip()}" for x in v if str(x).strip())
+    return str(v).strip()
+
+
 def load_brief(path):
     """按扩展名读取简报，返回 (字段字典, 缺失的字段列表)"""
     path = Path(path)
@@ -68,6 +78,6 @@ def load_brief(path):
         raise ValueError(f"暂不支持 {suffix}：请先把 PDF 另存为 .docx 或 .txt，再上传")
     if not isinstance(brief, dict) or not brief:
         raise ValueError("简报为空或格式不对：需要 '字段名: 内容' 的键值")
-    brief = {(_field_for(k) or k): (str(v).strip() if v is not None else "") for k, v in brief.items()}   # YAML/JSON 的键也认别名
+    brief = {(_field_for(k) or k): _as_text(v) for k, v in brief.items()}   # YAML/JSON 的键也认别名
     missing = [f for f in FIELDS if not brief.get(f)]
     return brief, missing
