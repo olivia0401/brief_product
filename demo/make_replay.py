@@ -109,7 +109,10 @@ def pause(t):
     blank(); emit([("[PAUSED] ", mono_b, LIME), (t, mono_b, LIME)], 1.4)
 
 # ================== the story ==================
-card("LANGGRAPH IN ACTION", "My Monika brief workflow", "A real run, replayed: AI drafts, the flow pauses for people,\nand picks up where it stopped days later.", 4.0)
+if "--part1" in sys.argv:          # 作为完整案例视频的第一部分：换成中性的分段标题
+    card("PART 1 · THE AGENT AT WORK", "A real run, start to finish", "AI drafts, the flow pauses for people,\nand picks up where it stopped days later.", 4.0)
+else:
+    card("LANGGRAPH IN ACTION", "My Monika brief workflow","A real run, replayed: AI drafts, the flow pauses for people,\nand picks up where it stopped days later.", 4.0)
 
 card("DAY 1", "The client sends a brief", "One key field is missing. Watch what the workflow does.")
 step(0)

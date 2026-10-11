@@ -146,7 +146,8 @@ def verdict(lo, hi):
 pct = lambda x: f"{round(100 * x)}%"
 
 # ================== the story ==================
-card("EVALUATING THE AGENT", "Is it right? Can it be trusted?",
+if "--part2" not in sys.argv:     # 作为完整案例视频的第二部分时，片头由拼接脚本的过渡卡代替
+  card("EVALUATING THE AGENT", "Is it right? Can it be trusted?",
      "The same LangGraph brief-extraction agent, now measured:\nscripted scenarios, 23 real client briefs, and its own 'pass' label.", 4.2)
 
 # ---- 1 trajectory ----
