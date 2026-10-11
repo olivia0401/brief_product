@@ -5,7 +5,7 @@ __pycache__/
 .env
 # run data (client briefs, deliveries, checkpoints) never goes into git
 data/
-eval/reports/
+evals/reports/
 # screenshots/renders of a third-party product: keep local until reviewed
 screenshots/
 preview/
