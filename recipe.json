@@ -1,5 +1,5 @@
 {
-  "recipe_version": "2026-09-30-from-experiment",
+  "recipe_version": "2026-10-11-overlap-042",
   "status": "from_experiment",
   "_status_note": "每栏的字段和模型取自 Results/Prompt Eval Results.xlsx Tab 2（生产推荐）的胜者表：8 个胜者全部在 gpt5mini 上，与整份简报的差距在 0.036 噪声内或略优；关键词用 B 版提示词（短 63%，F1 +0.018）。旗舰模型只在 3 份简报上测过，不作默认。",
   "provenance": {
@@ -23,7 +23,8 @@
                   "price_per_1m": { "input": 0.25, "output": 2.0 }, "prices_verified": false }
   },
   "evidence": {
-    "min_lexical_overlap": 0.3,
+    "min_lexical_overlap": 0.42,
+    "_threshold_note": "2026-10-11 由 evals/checkers.py 定：0.3 时'通过'标签和内容好坏几乎无关（AUC 0.51，只拦下 15% 不合格栏）。用词重合度作连续分数有区分度（AUC 0.74）；0.42 让 5 个事实栏的总人工审核量约 30%，留一法验证拦下 44%、自动通过合格率 81%（原 77%）。同批数据上自洽性（AUC 0.77，每栏多 2 次调用）不显著更好，AI 审核员（gpt-5-mini，只打 4/5 分）无效。",
     "interpretive_tasks": ["concept_relevant", "position_relevant", "emotion_relevant"],
     "_note": "程序只能查'原话在不在简报里'，查不了'原话是否支持结论'。除关键词外的五个事实栏：原话全部真实且用词重合度 >= 0.3 才算自动校验通过。解读栏三栏（提示词要求改写）固定标建议，由人判断。"
   },
