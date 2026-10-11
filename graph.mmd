@@ -1,0 +1,31 @@
+---
+config:
+  flowchart:
+    curve: linear
+---
+graph TD;
+	__start__([<p>__start__</p>]):::first
+	read_brief(read_brief)
+	find_conflicts(find_conflicts)
+	extract_one(extract_one)
+	draft_clarification(draft_clarification)
+	ask_client(ask_client)
+	human_review(human_review)
+	deliver(deliver)
+	__end__([<p>__end__</p>]):::last
+	__start__ --> read_brief;
+	ask_client -.-> human_review;
+	ask_client -.-> read_brief;
+	deliver -.-> __end__;
+	deliver -.-> human_review;
+	draft_clarification -.-> ask_client;
+	draft_clarification -.-> human_review;
+	extract_one -.-> draft_clarification;
+	extract_one -.-> human_review;
+	find_conflicts -.-> extract_one;
+	human_review -.-> deliver;
+	read_brief --> find_conflicts;
+	human_review -.-> human_review;
+	classDef default fill:#f2f0ff,line-height:1.2
+	classDef first fill-opacity:0
+	classDef last fill:#bfb6fc

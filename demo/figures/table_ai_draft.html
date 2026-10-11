@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<style>
+  :root{--paper:#F3F6F8;--ink:#15212B;--muted:#5A6873;--rule:#D3DBE2;
+        --ok:#1F6B41;--ok-bg:#EAF5EF;--ok-bd:#BFE3CF;--sug:#8A5A0E;--sug-bg:#FBF3E4;--sug-bd:#EBD3A3;
+        --bad:#9F3A2B;--bad-bg:#FBEDEA;--bad-bd:#F0C4BC}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:"Segoe UI",Arial,sans-serif}
+  .wrap{width:1240px;padding:28px 32px 26px}
+  h1{font-size:21px;font-weight:700;margin:0 0 4px}
+  .sub{font-size:14px;color:var(--muted);margin:0 0 18px}
+  table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.5}
+  th{text-align:left;font-size:13px;font-weight:600;color:var(--muted);padding:8px 16px 8px 0;border-bottom:1px solid var(--rule)}
+  td{vertical-align:top;padding:12px 16px 12px 0;border-bottom:1px solid #E1E6EC}
+  td.col{font-weight:700;width:190px}
+  td.col span{display:block;font-weight:400;color:var(--muted);font-size:13px}
+  td.val{width:330px}
+  td.src{width:330px;color:#2b3742}
+  .tag{display:inline-block;font-size:12.5px;font-weight:600;padding:1px 8px;border-radius:5px;border:1px solid;white-space:nowrap}
+  .ok{color:var(--ok);background:var(--ok-bg);border-color:var(--ok-bd)}
+  .sug{color:var(--sug);background:var(--sug-bg);border-color:var(--sug-bd)}
+  .bad{color:var(--bad);background:var(--bad-bg);border-color:var(--bad-bd)}
+  .warn{font-weight:700}
+  .note{font-size:13.5px;color:var(--muted)}
+  .hl{background:#FCE3DE;color:var(--bad);font-weight:600;padding:0 2px;border-radius:3px}
+  .foot{font-size:12.5px;color:var(--muted);margin-top:14px}
+</style></head>
+<body><div class="wrap">
+<h1>AI draft awaiting review</h1>
+<p class="sub">Real output from GPT-5-mini on the fictional Acme sample brief, after the client added the audience. Not hand-written.</p>
+<table>
+<thead><tr><th>Section (type · fields used)</th><th>AI draft</th><th>Source (quoted from the brief)</th><th>Automatic check</th></tr></thead>
+<tbody>
+<tr><td class="col">Function<span>fact · product</span></td>
+<td class="val">Voice-controlled smart home hubs that connect lights, locks, and thermostats and install in under five minutes.</td>
+<td class="src">"voice-controlled smart home hubs"; "connect lights, locks and thermostats"; "Sets up in under five minutes."</td>
+<td><span class="tag ok">Passed</span></td></tr>
+
+<tr><td class="col">Feature<span>fact · product</span></td>
+<td class="val">Voice-controlled smart home hubs integrate lights, locks, thermostats; rapid under-5-minute setup, centralizes control, enhances automation and <span class="hl">security</span>.</td>
+<td class="src">Same as above</td>
+<td><span class="tag ok">Passed</span> <span class="warn">— but the brief never mentions "security".</span> <span class="note">The quotes are real, so the program can't catch this. The manager removed it.</span></td></tr>
+
+<tr><td class="col">Category<span>fact · product</span></td>
+<td class="val">Voice-controlled smart home hubs integrating lights, locks, and thermostats for quick home automation setup.</td>
+<td class="src">—</td>
+<td><span class="tag bad">Format failed</span> <span class="note">14 words; the rule is 15–20. Still too short after one retry. The manager rewrote it.</span></td></tr>
+
+<tr><td class="col">Benefit<span>fact · audience + differentiators</span></td>
+<td class="val">Quick, affordable smart-home setup for renters — easy installation, no ongoing subscription fees, fast setup and lower-priced convenience.</td>
+<td class="src">"Mid-30s renters in urban apartments who want connected-home convenience without a subscription bill."; "Faster setup, lower price, no subscription required"</td>
+<td><span class="tag ok">Passed</span></td></tr>
+
+<tr><td class="col">Context<span>fact · audience</span></td>
+<td class="val">Urban mid-30s renters seek affordable, subscription-free smart-home convenience compatible with apartment living and <span class="hl">flexible mobility</span>.</td>
+<td class="src">"Mid-30s renters in urban apartments who want connected-home convenience without a subscription bill."</td>
+<td><span class="tag ok">Passed</span> <span class="warn">— but "flexible mobility" isn't in the brief.</span> <span class="note">Caught by the manager during review.</span></td></tr>
+
+<tr><td class="col">Concept<span>interpretation · brand strategy</span></td>
+<td class="val">Approachable, time-saving technology with a friendly, low-fuss personality and light sense of humour.</td>
+<td class="src">"Friendly tech that respects your time."; "Approachable, low-fuss, with a sense of humour."</td>
+<td><span class="tag sug">Suggestion</span> <span class="note">The model's reading of the strategy, not the client's words. A person decides.</span></td></tr>
+
+<tr><td class="col">Position<span>interpretation · audience + differentiators</span></td>
+<td class="val">An affordable, no-subscription smart-home solution that undercuts competitors with faster setup, lower price, and easy connected convenience for renters.</td>
+<td class="src">"want connected-home convenience without a subscription bill"; "Faster setup, lower price, no subscription required"</td>
+<td><span class="tag sug">Suggestion</span></td></tr>
+
+<tr><td class="col">Emotion<span>interpretation · strategy + differentiators</span></td>
+<td class="val">Relieved and confident — you feel smart, unburdened, and amused knowing helpful tech saves you time without fuss or cost.</td>
+<td class="src">"Friendly tech that respects your time."; "Approachable, low-fuss, with a sense of humour."; "Faster setup, lower price, no subscription required"</td>
+<td><span class="tag sug">Suggestion</span> <span class="note">"Relieved and confident" is inferred; the brief doesn't say it.</span></td></tr>
+
+<tr><td class="col">Keywords<span>fact · 5 fields</span></td>
+<td class="val">renters, urban, connected-home, subscription, Friendly, low-fuss, Faster, price, voice-controlled, hubs</td>
+<td class="src">Every word appears in the brief</td>
+<td><span class="tag ok">Passed</span></td></tr>
+</tbody></table>
+<p class="foot">Run on 8 Oct 2026 · 9 sections drafted in parallel · cost for this round $0.003 · fictional sample brief, demo run, not connected to Monika's live system.</p>
+</div></body></html>

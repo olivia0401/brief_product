@@ -1,0 +1,47 @@
+{
+  "recipe_version": "2026-09-30-from-experiment",
+  "status": "from_experiment",
+  "_status_note": "每栏的字段和模型取自 Results/Prompt Eval Results.xlsx Tab 2（生产推荐）的胜者表：8 个胜者全部在 gpt5mini 上，与整份简报的差距在 0.036 噪声内或略优；关键词用 B 版提示词（短 63%，F1 +0.018）。旗舰模型只在 3 份简报上测过，不作默认。",
+  "provenance": {
+    "experiment_repo": "prompt-evaluation",
+    "experiment_commit": "9c1f607",
+    "dataset": "23 briefs; reference-answer provenance not recorded",
+    "decided_from": "Results/Prompt Eval Results.xlsx, Tab 2 生产推荐（Stage A + Stage B, all 23 briefs）",
+    "run_noise_sd_cosine": 0.018,
+    "decision_tolerance_cosine": 0.036,
+    "_noise_note": "0.018 是同配置重复运行测出的标准差（总体估计；另一种按栏估计约 0.006，口径未对齐）；0.036 = 2σ 是人定的暂定工程容差，待业务结果校准",
+    "experiment_total_cost_usd": 3.05,
+    "prices_verified": false
+  },
+  "client_isolation": { "data_root": "data", "retention_days": 180 },
+  "budget_per_brief_usd": 0.05,
+  "clarification": { "max_rounds": 1, "model": "gpt5mini", "critical_fields": ["product", "audience"],
+                     "_note": "只有关键字段缺失或简报矛盾才生成澄清草稿；问不问由客户经理定；最多问 max_rounds 轮。其他缺口保留未知" },
+  "models": {
+    "gpt5mini": { "provider": "openai", "id": "gpt-5-mini-2025-08-07", "reasoning_effort": "minimal", "max_tokens": 1000,
+                  "_params_note": "与实验仓库 src/config.py 的 gpt5mini 一致：推理模型不传 temperature；max_tokens 200 会被推理 token 用光导致每次调用失败",
+                  "price_per_1m": { "input": 0.25, "output": 2.0 }, "prices_verified": false }
+  },
+  "evidence": {
+    "min_lexical_overlap": 0.3,
+    "interpretive_tasks": ["concept_relevant", "position_relevant", "emotion_relevant"],
+    "_note": "程序只能查'原话在不在简报里'，查不了'原话是否支持结论'。除关键词外的五个事实栏：原话全部真实且用词重合度 >= 0.3 才算自动校验通过。解读栏三栏（提示词要求改写）固定标建议，由人判断。"
+  },
+  "contradiction_rules": [
+    { "name": "价格定位矛盾", "a": ["premium", "luxury", "high-end", "高端", "奢华"], "b": ["cheapest", "lowest price", "budget", "最便宜", "低价"], "tasks": ["position_relevant", "benefit_relevant"] }
+  ],
+  "tasks": {
+    "concept_relevant":  {"fields": ["brand_strategy"],                    "prompt_version": "A", "model": "gpt5mini", "min_words": 10, "max_words": 20},
+    "position_relevant": {"fields": ["audience", "differentiators"],       "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "emotion_relevant":  {"fields": ["brand_strategy", "differentiators"], "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "function_relevant": {"fields": ["product"],                           "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "benefit_relevant":  {"fields": ["audience", "differentiators"],       "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "category_relevant": {"fields": ["product"],                           "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 20},
+    "feature_relevant":  {"fields": ["product"],                           "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "context_relevant":  {"fields": ["audience"],                          "prompt_version": "A", "model": "gpt5mini", "min_words": 15, "max_words": 25},
+    "keywords":          {"fields": ["audience", "brand_strategy", "differentiators", "personality", "product"],
+                          "prompt_version": "B", "model": "gpt5mini", "keyword_count": 10,
+                          "status": "engineering_assumption",
+                          "_note": "实验用 full brief；这 5 个字段未经实验验证（缺 business_category）。Prompt B 版来自实验，字段选择是工程设定"}
+  }
+}

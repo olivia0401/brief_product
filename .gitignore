@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.db
+.env
+# run data (client briefs, deliveries, checkpoints) never goes into git
+data/
+eval/reports/
+# screenshots/renders of a third-party product: keep local until reviewed
+screenshots/
+preview/
+monika_graph.png
+demo/replay_demo.mp4
