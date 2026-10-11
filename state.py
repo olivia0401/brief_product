@@ -19,6 +19,9 @@ class Item(TypedDict, total=False):
     cost_usd: float
     latency_s: float
     attempts: int
+    retries: int                 # 暂时性错误（限流、超时）的重试次数
+    input_tokens: int
+    output_tokens: int
     config_id: str
 
 
@@ -38,6 +41,8 @@ class State(TypedDict, total=False):
     clarification_draft: str     # 为空表示不再问
     clarification_log: list      # 每轮：谁决定（rule / model）、动作、理由、问题、费用
     prior_cost_usd: float        # 客户补充前几轮的模型花费；不声明的话 LangGraph 会丢掉这个字段
+    prior_input_tokens: int       # 同上：客户补充前几轮的 token
+    prior_output_tokens: int
     confirmed_at: str           # 人工确认时间，human_review 写入后不再变
     confirmed: dict              # 栏 → {value, action, evidence, evidence_source, edited_by_human}
     review_errors: list          # 核对回答或交付格式的问题；非空就回到 human_review 重新问

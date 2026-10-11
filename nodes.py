@@ -5,7 +5,9 @@ from pathlib import Path
 from langgraph.types import Send, interrupt
 
 HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(HERE.parent / "prompt-evaluation"))
+import experiment_repo
+EXPERIMENT_DIR = experiment_repo.locate()
+sys.path.insert(0, str(EXPERIMENT_DIR))
 from src.prompt_builder import load_prompts, build_prompt, SENTENCE_TASKS, KEYWORD_TASK   # 实验仓库
 from src.evaluators import parse_keywords                                                  # 实验仓库
 
@@ -17,7 +19,7 @@ from parse_brief import load_brief
 RECIPE = json.loads((HERE / "recipe.json").read_text(encoding="utf-8"))
 RECIPE_HASH = hashlib.sha1((HERE / "recipe.json").read_bytes()).hexdigest()[:12]   # 配置内容哈希：同名配置改了内容也能发现
 llm.RECIPE = RECIPE
-TEMPLATES = load_prompts(HERE.parent / "prompt-evaluation" / "prompts.txt")
+TEMPLATES = load_prompts(EXPERIMENT_DIR / "prompts.txt")
 ALL_TASKS = SENTENCE_TASKS + [KEYWORD_TASK]
 PER_TASK_BUDGET_USD = RECIPE["budget_per_brief_usd"] / len(ALL_TASKS)   # 软上限：按栏分摊；调用前检查，最多超出一次调用的费用
 CLAR = RECIPE["clarification"]                                          # 轮数上限、哪些字段算关键缺口
@@ -71,7 +73,7 @@ def extract_one(state):
     spec = RECIPE["tasks"][task]
     fields = sorted(spec["fields"])
     item = {"status": "调用失败", "value": None, "quotes": [], "evidence": [], "problems": [],
-            "cost_usd": 0.0, "latency_s": 0.0, "attempts": 0, "config_id": f'{spec["prompt_version"]}:{"+".join(fields)}'}
+            "cost_usd": 0.0, "latency_s": 0.0, "attempts": 0, "retries": 0, "input_tokens": 0, "output_tokens": 0, "config_id": f'{spec["prompt_version"]}:{"+".join(fields)}'}
 
     if len(unknown_fields(brief, fields)) == len(fields):             # 所需字段全空：不调用模型
         item.update(status="未知", value=f"未知：简报未提供 {', '.join(fields)}", problems=["简报缺少所需字段"])
@@ -84,6 +86,8 @@ def extract_one(state):
         r = llm.call(spec["model"], prompt)
         item["attempts"] = attempt
         item["cost_usd"] += r["cost_usd"]; item["latency_s"] += r["latency_s"]
+        item["retries"] += r.get("retries", 0)                         # 暂时性错误的重试（限流、超时），和格式重试分开记
+        item["input_tokens"] += r.get("input_tokens", 0); item["output_tokens"] += r.get("output_tokens", 0)
         if not r["ok"]:
             item["problems"] = [r["error"]]; continue
         if task == KEYWORD_TASK:
@@ -146,7 +150,8 @@ def draft_clarification(state):
               f"Mention only as optional, in one sentence: {optional or 'nothing'}.\nNo preamble.")
     r = llm.call(CLAR["model"], prompt, suffix="")
     draft = r["parsed"].value if r["ok"] else "（草稿生成失败，请手写）"
-    log.append({"round": rnd, "action": "draft", "question": draft, "optional": optional, "cost_usd": r["cost_usd"], **g})
+    log.append({"round": rnd, "action": "draft", "question": draft, "optional": optional, "cost_usd": r["cost_usd"],
+                "input_tokens": r.get("input_tokens", 0), "output_tokens": r.get("output_tokens", 0), **g})
     return {"clarification_draft": draft, "clarification_log": log}
 
 
@@ -159,8 +164,12 @@ def ask_client(state):
     answer = interrupt({"kind": "ask_client", "draft": state["clarification_draft"], "missing": state["missing_fields"],
                         "contradictions": state["contradictions"], "round": state.get("clarification_round", 0)})
     if answer.get("action") == "resent":                               # 客户补充后：换简报、清空结果、从头重跑；之前的花费累计
-        spent = state.get("prior_cost_usd", 0.0) + sum(i.get("cost_usd", 0) for i in state.get("items", {}).values())
+        done = state.get("items", {}).values()
+        spent = state.get("prior_cost_usd", 0.0) + sum(i.get("cost_usd", 0) for i in done)
+        prior_tokens = [state.get("prior_input_tokens", 0) + sum(i.get("input_tokens", 0) for i in done),
+                        state.get("prior_output_tokens", 0) + sum(i.get("output_tokens", 0) for i in done)]
         return {"brief_path": answer["brief_path"], "items": {"__reset__": True}, "contradictions": [], "prior_cost_usd": spent,
+                "prior_input_tokens": prior_tokens[0], "prior_output_tokens": prior_tokens[1],
                 "clarification_round": state.get("clarification_round", 0) + 1}
     return {}
 
@@ -230,8 +239,13 @@ def deliver(state):
     out.write_text(json.dumps(doc, ensure_ascii=False, indent=2), encoding="utf-8")
     cost = state.get("prior_cost_usd", 0.0) + sum(i.get("cost_usd", 0) for i in state["items"].values()) \
            + sum(e.get("cost_usd", 0) for e in state.get("clarification_log", []))
+    calls = list(state["items"].values()) + state.get("clarification_log", [])
     run_log = {"brief_id": state["brief_id"], "source_hash": state.get("source_hash"), "time": stamp, "recipe_version": RECIPE["recipe_version"],
-               "total_cost_usd": round(cost, 6), "clarification_log": state.get("clarification_log", []),
+               "total_cost_usd": round(cost, 6),
+               "total_input_tokens": state.get("prior_input_tokens", 0) + sum(c.get("input_tokens", 0) for c in calls),
+               "total_output_tokens": state.get("prior_output_tokens", 0) + sum(c.get("output_tokens", 0) for c in calls),
+               "total_retries": sum(i.get("retries", 0) for i in state["items"].values()),
+               "clarification_log": state.get("clarification_log", []),
                "items": {t: {k: v for k, v in it.items() if k not in ("value", "quotes")} for t, it in state["items"].items()}}
     (root / "run_log" / f"{state['brief_id']}.json").write_text(json.dumps(run_log, ensure_ascii=False, indent=2), encoding="utf-8")
     edits = [{"brief_id": state["brief_id"], "recipe_version": RECIPE["recipe_version"], "task": t, "action": c["action"],
