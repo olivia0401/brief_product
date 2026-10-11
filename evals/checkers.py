@@ -159,7 +159,35 @@ def evaluate(items, results):
             "failures": sum(r[name] is None for r in results)}
     judge = [r["B_ai_judge"] for r in results]
     report["judge_score_distribution"] = {s: judge.count(s) for s in sorted(set(j for j in judge if j is not None))}
+    report["router_before_after"] = router_before_after(items, results, bad)
     return report
+
+
+def _router_rates(flag, bad):
+    n_bad, n_good, auto = sum(bad), len(bad) - sum(bad), [not f for f in flag]
+    return {"flag_rate": round(sum(flag) / len(flag), 3),
+            "catch_recall": round(sum(f and x for f, x in zip(flag, bad)) / n_bad, 3),
+            "miss_rate": round(sum(a and x for a, x in zip(auto, bad)) / n_bad, 3),
+            "false_block_rate": round(sum(f and not x for f, x in zip(flag, bad)) / n_good, 3),
+            "auto_pass_good_rate": round(sum(a and not x for a, x in zip(auto, bad)) / sum(auto), 3)}
+
+
+def router_before_after(items, results, bad, budget=BUDGET):
+    """整个路由（原有检查 + 用词重合度阈值）改前 / 改后。改后用留一法：每份简报的阈值只用其余 22 份定，
+    取让总审核量不超过 budget 的最高阈值。原有状态来自阈值 0.3 时的生产运行"""
+    old = [it["status"] != "通过" for it in items]
+    overlap = [r["current_overlap"] for r in results]
+    cands = [x / 100 for x in range(20, 80)]
+    new = [False] * len(items)
+    for b in {it["brief"] for it in items}:
+        oth = [i for i, it in enumerate(items) if it["brief"] != b]
+        rate = lambda t: sum(old[i] or overlap[i] < t for i in oth) / len(oth)
+        thr = max([c for c in cands if rate(c) <= budget] or [0.3])
+        for i, it in enumerate(items):
+            if it["brief"] == b:
+                new[i] = old[i] or overlap[i] < thr
+    return {"before_threshold": 0.3, "after_threshold": nodes.RECIPE["evidence"]["min_lexical_overlap"],
+            "before": _router_rates(old, bad), "after_leave_one_out": _router_rates(new, bad)}
 
 
 def print_report(rep, spent):

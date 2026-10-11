@@ -10,4 +10,4 @@ evals/reports/
 screenshots/
 preview/
 monika_graph.png
-demo/replay_demo.mp4
+demo/*.mp4
