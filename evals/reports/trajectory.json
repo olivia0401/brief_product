@@ -1,0 +1,304 @@
+{
+  "scenarios": 14,
+  "passed": 14,
+  "path_correct": 14,
+  "status_correct": "24/24",
+  "invariant_violations": 0,
+  "results": [
+    {
+      "scenario": "happy_path",
+      "tests": "完整简报、模型回复都合格：事实栏通过，解读栏标建议，直接交付，不问客户",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "fabricated_quote",
+      "tests": "模型编造一句简报里没有的引用：这栏不能通过，转人工",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "no_evidence",
+      "tests": "模型没给任何引用：不能凭空通过",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "inferred_content",
+      "tests": "引用是真的，但内容是简报里没有的词（模型在推断）：转人工",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "invented_keyword",
+      "tests": "10 个关键词里有一个简报里没有：整栏转人工，并点名是哪个词",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "format_retry_recovers",
+      "tests": "第一次回复太短，重试一次后合格：通过，且只多调一次",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 10,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "format_fails_twice",
+      "tests": "两次都不合格：标格式不合格，最多调两次，不无限重试",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 10,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "llm_error_isolated",
+      "tests": "一栏调用失败：只影响这一栏，其他栏照常，流程照常到人工核对",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 10,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "budget_stops_retry",
+      "tests": "单次调用就超出本栏预算：格式不合格时不再重试",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "contradiction_routes_to_human",
+      "tests": "简报同时说高端和最便宜：先起草澄清邮件；受影响的两栏转人工",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "draft_clarification",
+        "⏸ask_client",
+        "ask_client",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 10,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "noncritical_gap_no_call",
+      "tests": "缺品牌策略（非关键字段）：不打扰客户；只靠这个字段的栏标未知、不调模型",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 8,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "critical_gap_asks_client",
+      "tests": "缺受众（关键字段）：先起草澄清邮件，停下等客户经理决定",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "draft_clarification",
+        "⏸ask_client",
+        "ask_client",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "clarification_capped",
+      "tests": "客户回复了但还是没补：只问一轮，第二轮停止并转人工",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "draft_clarification",
+        "⏸ask_client",
+        "ask_client",
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "draft_clarification",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 17,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    },
+    {
+      "scenario": "incomplete_review_asks_again",
+      "tests": "审核员漏答一栏需确认的：不报错，带着说明重新停下；补答后交付",
+      "passed": true,
+      "failures": [],
+      "path": [
+        "read_brief",
+        "find_conflicts",
+        "extract_one",
+        "⏸human_review",
+        "human_review",
+        "⏸human_review",
+        "human_review",
+        "deliver"
+      ],
+      "llm_calls": 9,
+      "invariants": {
+        "pass_has_evidence": true,
+        "bounded_calls": true,
+        "delivered_only_after_review": true
+      }
+    }
+  ]
+}
