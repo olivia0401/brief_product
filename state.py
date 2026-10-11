@@ -13,6 +13,7 @@ def merge(a: dict, b: dict) -> dict:
 class Item(TypedDict, total=False):
     value: str | list[str]       # 模型写的内容；关键词是列表
     quotes: list[str]            # 模型抄出的原话
+    raw_output: str              # 关键词栏：模型原话（解析前），排查格式问题用
     evidence: list[str]          # 程序核对后确认在简报里的原话（只证明"原话存在"，不证明"原话支持结论"）
     status: str                  # 栏状态：通过 / 建议 / 需人工确认 / 未知 / 格式不合格 / 调用失败
     problems: list[str]

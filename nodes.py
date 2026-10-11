@@ -58,6 +58,15 @@ def find_conflicts(state):
     return {"contradictions": find_contradictions(state["brief"], RECIPE["contradiction_rules"])}
 
 
+def parse_keyword_value(text):
+    """先用实验的解析器（认 Step 2 编号列表）；模型只回一行逗号分隔的词时，按逗号拆。
+    结构化输出的字段说明写的是"逗号分隔"，和 prompt 要求的编号列表冲突，模型两种都会回（评估时 23 份里 11 份是逗号格式）"""
+    terms, _ = parse_keywords(text)
+    if not terms and "," in text and "\n" not in text.strip():
+        terms = [w.strip().strip(".") for w in text.split(",") if w.strip().strip(".")]
+    return terms
+
+
 # ---------- 扇出：对 9 栏各发一个子任务 ----------
 def fan_out(state):
     return [Send("extract_one", {**state, "task": t}) for t in ALL_TASKS]
@@ -91,7 +100,8 @@ def extract_one(state):
         if not r["ok"]:
             item["problems"] = [r["error"]]; continue
         if task == KEYWORD_TASK:
-            value, _ = parse_keywords(r["parsed"].value)
+            item["raw_output"] = r["parsed"].value                       # 解析失败时能看到模型原话（含客户内容，不进 run_log）
+            value = parse_keyword_value(r["parsed"].value)
             problems = [] if len(value) == spec["keyword_count"] else [f"关键词 {len(value)} 个，要求 {spec['keyword_count']} 个"]
         else:
             value = r["parsed"].value.strip()
@@ -246,7 +256,7 @@ def deliver(state):
                "total_output_tokens": state.get("prior_output_tokens", 0) + sum(c.get("output_tokens", 0) for c in calls),
                "total_retries": sum(i.get("retries", 0) for i in state["items"].values()),
                "clarification_log": state.get("clarification_log", []),
-               "items": {t: {k: v for k, v in it.items() if k not in ("value", "quotes")} for t, it in state["items"].items()}}
+               "items": {t: {k: v for k, v in it.items() if k not in ("value", "quotes", "raw_output")} for t, it in state["items"].items()}}
     (root / "run_log" / f"{state['brief_id']}.json").write_text(json.dumps(run_log, ensure_ascii=False, indent=2), encoding="utf-8")
     edits = [{"brief_id": state["brief_id"], "recipe_version": RECIPE["recipe_version"], "task": t, "action": c["action"],
               "ai_value": state["items"][t].get("value"), "ai_status": state["items"][t]["status"], "confirmed_value": c["value"]}

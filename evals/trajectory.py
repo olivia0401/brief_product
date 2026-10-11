@@ -80,6 +80,12 @@ def invented(task, brief):
     return good(task, brief).model_copy(update={"value": " ".join((filler + " " + filler).split()[:SPECS[task]["min_words"] + 2])})
 
 
+def comma_keywords(task, brief):
+    """模型按结构化输出的字段说明回一行逗号分隔的词，没有编号（真实评估里 23 份有 11 份这样）"""
+    terms = [l.split(". ", 1)[1] for l in good(task, brief).value.splitlines()]
+    return llm.Extraction(value=",".join(terms), quotes=[])
+
+
 def invented_keyword(task, brief):
     terms = [l.split(". ", 1)[1] for l in good(task, brief).value.splitlines()]
     terms[-1] = "blockchain"
@@ -158,6 +164,8 @@ SCENARIOS = [
     Scenario("invented_keyword", "10 个关键词里有一个简报里没有：整栏转人工，并点名是哪个词",
              HAPPY, behaviour={KW: [invented_keyword]},
              status={KW: "需人工确认"}, problem={KW: "blockchain"}),
+    Scenario("comma_separated_keywords", "关键词回成一行逗号分隔（没有编号）：照样解析出 10 个、通过，不判格式不合格",
+             HAPPY, behaviour={KW: [comma_keywords]}, status={KW: "通过"}, calls={KW: 1}),
     Scenario("format_retry_recovers", "第一次回复太短，重试一次后合格：通过，且只多调一次",
              HAPPY, behaviour={"context_relevant": [too_short, good]},
              status={"context_relevant": "通过"}, calls={"context_relevant": 2}),
