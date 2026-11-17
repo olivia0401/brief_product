@@ -1,0 +1,14 @@
+# Offline, mocked-model tests; no client briefs or API credentials required.
+# LangGraph SQLite checkpoints live in a separately distributed package.
+pytest>=8.3,<10
+pydantic>=2.9,<3
+python-dotenv>=1.0,<2
+PyYAML>=6.0,<7
+python-docx>=1.1,<2
+langgraph>=1.0,<2
+langgraph-checkpoint-sqlite>=3.0,<4
+langchain>=1.0,<2
+langchain-openai>=1.0,<2
+# The sibling prompt-evaluation repository's keyword parser imports these.
+numpy>=2.0,<3
+nltk>=3.9,<4
