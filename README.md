@@ -13,7 +13,7 @@ A LangGraph-based prototype that turns client briefs into structured draft outpu
 
 The checks verify output structure and evidence presence/overlap; they do not establish that every cited passage semantically supports the generated claim. Human review remains part of the workflow.
 
-The test suite could not be collected in the current audit environment because required LangGraph/LangChain imports were unavailable, including `langgraph.checkpoint.sqlite`. Install compatible project dependencies and rerun the suite before treating source tests as passing.
+An earlier audit could not collect the test suite because LangGraph/LangChain dependencies (including `langgraph.checkpoint.sqlite`) were absent. This was addressed by adding `requirements-test.txt` and the [offline CI workflow](.github/workflows/ci.yml), which checks out a pinned version of the shared `prompt-evaluation` parser. The [2026-11-17 CI run](https://github.com/olivia0401/brief_product/actions/runs/43992337767) passed **33 pytest tests, 15/15 scripted trajectories, and 5/5 mutation/guardrail probes**. These use a mocked LLM and synthetic briefs: they verify offline control flow and tests, **not** live-provider quality, customer acceptance, or the overall evidence-quality gate.
 
 ## Relationship to the extraction benchmark
 
