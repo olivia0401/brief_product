@@ -1,0 +1,43 @@
+name: Offline workflow and regression tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out extraction workflow
+        uses: actions/checkout@v4
+        with:
+          path: brief_product
+      - name: Check out shared prompt and parser code
+        uses: actions/checkout@v4
+        with:
+          repository: olivia0401/prompt-evaluation
+          ref: 8b4a1a6f6e69cac6d456197b862c1ebb119b8830
+          path: prompt-evaluation
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install offline test dependencies
+        working-directory: brief_product
+        run: python -m pip install -r requirements-test.txt
+      - name: Run mocked-model unit and trajectory regression tests
+        working-directory: brief_product
+        env:
+          PROMPT_EVAL_DIR: ${{ github.workspace }}/prompt-evaluation
+        run: python -m pytest tests -q
+      - name: Exercise trajectory evaluation
+        working-directory: brief_product
+        env:
+          PROMPT_EVAL_DIR: ${{ github.workspace }}/prompt-evaluation
+        run: python -m evals.trajectory
+      - name: Verify evaluation catches guardrail mutations
+        working-directory: brief_product
+        env:
+          PROMPT_EVAL_DIR: ${{ github.workspace }}/prompt-evaluation
+        run: python -m evals.mutation
