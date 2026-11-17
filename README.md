@@ -28,10 +28,13 @@ In this repository, the terms are used consistently:
 
 - **Client brief:** the original information supplied for an extraction task.
 - **Extraction workflow:** the LangGraph prototype generating structured outputs.
-- **Source check:** a check that quoted evidence comes from the brief; it does
-  not by itself establish that the generated interpretation is correct.
-- **Automated quality check:** additional checks that may route an uncertain
-  extraction to **human review**; human review is not an automatic pass.
+- **Source check:** checks whether quoted evidence comes from the brief. The
+  earlier routing logic also used a lexical-overlap screen; neither alone
+  establishes whether the extracted interpretation is correct.
+- **Automated quality check:** the revised routing uses the **existing**
+  lexical-overlap score with a tighter acceptance threshold (0.30 → 0.42),
+  referring more uncertain extractions to **human review**. This was a
+  threshold/routing change, not the first introduction of word overlap.
 
 The detailed report in `evals/RESULTS.md` is dated **2026-10-11**, and the
 README evaluation snapshot above is **2026-11-05**. Those are record dates,
